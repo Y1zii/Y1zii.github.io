@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Visualización Shell Sort</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    background-color: #f4f6f9;
+}
+
+/* Contenedor de las barras */
+#array-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 500px;
+    border: 2px solid #ddd;
+    background-color: white;
+    padding: 10px;
+}
+
+/* Estilo de cada barra */
+.bar {
+    margin: 0 5px;
+    background-color: #0d6efd;
+    width: 40px;
+    text-align: center;
+    color: white;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Barra activa (comparación) */
+.active {
+    background-color: red !important;
+}
+
+/* Cuando termina */
+.sorted {
+    background-color: green !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+
+        <!-- PANEL IZQUIERDO -->
+        <div class="col-md-3">
+            <div class="card p-4 shadow">
+
+                <h4 class="mb-3">Controles</h4>
+
+                <div class="mb-3">
+                    <label>Ingrese números (separados por coma)</label>
+                    <input type="text" id="numbers" class="form-control"
+                           value="23,12,1,8,34,54,2,3">
+                </div>
+
+                <div class="mb-3">
+                    <label>Gap inicial (opcional)</label>
+                    <input type="number" id="gapInput" class="form-control"
+                           placeholder="Automático">
+                </div>
+
+                <div class="mb-3">
+                    <label>Velocidad (ms)</label>
+                    <input type="range" id="speed" class="form-range"
+                           min="100" max="2000" step="100" value="500">
+                    <span id="speedValue">500 ms</span>
+                </div>
+
+                <button class="btn btn-primary w-100 mb-3"
+                        onclick="startSort()">Iniciar</button>
+
+                <h5 id="gapDisplay">Gap actual: -</h5>
+
+            </div>
+        </div>
+
+        <!-- PANEL DERECHO -->
+        <div class="col-md-9">
+            <h2 class="text-center mb-3">
+                Visualización del Algoritmo Shell Sort
+            </h2>
+
+            <div id="array-container"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let delay = 500;
+
+// Actualiza valor del slider
+document.getElementById("speed").addEventListener("input", function() {
+    delay = this.value;
+    document.getElementById("speedValue").innerText = delay + " ms";
+});
+
+// Función para pausar ejecución
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Dibuja las barras
+function renderArray(arr, activeIndex1 = -1, activeIndex2 = -1) {
+    const container = document.getElementById("array-container");
+    container.innerHTML = "";
+
+    arr.forEach((value, index) => {
+        const bar = document.createElement("div");
+        bar.classList.add("bar");
+
+        bar.style.height = value * 5 + "px";
+        bar.innerText = value;
+
+        if (index === activeIndex1 || index === activeIndex2) {
+            bar.classList.add("active");
+        }
+
+        container.appendChild(bar);
+    });
+}
+
+// Shell Sort Animado
+async function shellSort(arr, gap) {
+
+    let n = arr.length;
+
+    // Si el usuario no define gap, usamos n/2
+    if (!gap || gap <= 0) {
+        gap = Math.floor(n / 2);
+    }
+
+    while (gap > 0) {
+
+        document.getElementById("gapDisplay").innerText = "Gap actual: " + gap;
+
+        for (let i = gap; i < n; i++) {
+
+            let temp = arr[i];
+            let j = i;
+
+            while (j >= gap && arr[j - gap] > temp) {
+
+                renderArray(arr, j, j - gap);
+                await sleep(delay);
+
+                arr[j] = arr[j - gap];
+                j = j - gap;
+
+                renderArray(arr, j, j + gap);
+                await sleep(delay);
+            }
+
+            arr[j] = temp;
+            renderArray(arr);
+            await sleep(delay);
+        }
+
+        gap = Math.floor(gap / 2);
+    }
+
+    document.getElementById("gapDisplay").innerText = "Ordenado ✔";
+
+    const bars = document.querySelectorAll(".bar");
+    bars.forEach(bar => bar.classList.add("sorted"));
+}
+
+// Iniciar proceso
+function startSort() {
+
+    let input = document.getElementById("numbers").value;
+
+    let arr = input.split(",").map(Number);
+
+    let gapValue = parseInt(document.getElementById("gapInput").value);
+
+    renderArray(arr);
+
+    shellSort(arr, gapValue);
+}
+</script>
+
+</body>
+</html>
